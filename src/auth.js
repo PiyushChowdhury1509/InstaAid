@@ -53,13 +53,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user && user.role === 'volunteer') return `${baseUrl}/volunteer/dashboard`;
       return baseUrl;
     },
-    async session({ session, token, user }) {
-      if (user) session.user.role = user.role; 
-      return session;
-    },
     async jwt({ token, user }) {
-      if (user) token.role = user.role;
+      if (user) {
+        token.id = user._id;  // Set token ID to user._id
+        token.role = user.role;
+      }
       return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
     },
   },
 });

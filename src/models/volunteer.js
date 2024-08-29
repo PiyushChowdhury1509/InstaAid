@@ -31,8 +31,20 @@ const volunteerSchema = new mongoose.Schema({
             required: true
         }
     },
+    liveAccidents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Accident'
+    }],
+    solvedAccidents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Accident'
+    }],
+    unsolvedAccidents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Accident'
+    }],
 }, { timestamps: true });
 
-const Volunteer = mongoose.models.volunteer || mongoose.model("volunteer", volunteerSchema);
+const Volunteer = mongoose.models.Volunteer || mongoose.model("Volunteer", volunteerSchema);
 
 export default Volunteer;

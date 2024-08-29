@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import Accident from '@/models/accident';
 import mongoose from 'mongoose';
+import connectDB from '@/dbconfig/dbconfig';
+import Accident from '@/models/accident';
 import Volunteer from '@/models/volunteer';
+
+connectDB();
 
 export const POST = async (req) => {
   try {
-    if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.MONGODB_URI);
-    }
-
     const { description, reporters, photos, videos, location, hospital } = await req.json();
 
     const accidentData = {
@@ -38,6 +37,12 @@ export const POST = async (req) => {
 
     const accident = new Accident(accidentData);
     await accident.save();
+
+    // Update the liveAccidents array for each nearest volunteer
+    for (const volunteer of nearestVolunteers) {
+      volunteer.liveAccidents.push(accident._id);
+      await volunteer.save();
+    }
 
     return NextResponse.json({ message: 'Accident reported successfully!', nearestVolunteers: accidentData.nearestVolunteers });
   } catch (error) {

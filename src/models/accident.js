@@ -1,9 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const AccidentSchema = new mongoose.Schema({
     description: {
         type: String,
-        required: true,
     },
     photos: [{
         type: String, 
@@ -13,17 +12,14 @@ const AccidentSchema = new mongoose.Schema({
     }],
     reporters: [{
         type: String, 
-        required: true,
     }],
     nearestVolunteers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Volunteer', 
-        required: true,
     }],
     hospital: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Hospital', 
-        required: true,
     },
     location: {
         type: {
@@ -42,6 +38,6 @@ const AccidentSchema = new mongoose.Schema({
 
 AccidentSchema.index({ location: '2dsphere' }); 
 
-const Accident = mongoose.models.Accident ||  mongoose.model('Accident', AccidentSchema);
+const Accident = mongoose.models.accident ||  mongoose.model('accident', AccidentSchema);
 
 export default Accident;
