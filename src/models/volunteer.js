@@ -19,7 +19,18 @@ const volunteerSchema = new mongoose.Schema({
     verified: {
         type: Boolean,
         default: false,
-    }
+    },
+    location: {
+        type: {
+            type: String, 
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number], 
+            required: true
+        }
+    },
 }, { timestamps: true });
 
 const Volunteer = mongoose.models.volunteer || mongoose.model("volunteer", volunteerSchema);

@@ -2,12 +2,12 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import Volunteer from "@/models/volunteer";
 import connectDB from "@/dbconfig/dbconfig";
-import { sendVerificationEmail } from "@/helpers/sendVerificationEmail"; // import your sendVerificationEmail helper
+import { sendVerificationEmail } from "@/helpers/sendVerificationEmail"; 
 
 export async function POST(req) {
   const { email, password, username, location } = await req.json();
-
-  await connectDB();
+  console.log('location arrived at backend',location)
+  connectDB();
 
   const existingUser = await Volunteer.findOne({ email });
   if (existingUser) {
@@ -23,23 +23,12 @@ export async function POST(req) {
     username,
     email,
     password: hashedPassword,
-    location,
+    location, 
     verifyToken,
   });
 
   await user.save();
 
-  // Send verification email
-  const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL}/volunteer/verify/${verifyToken}`;
-  const emailResponse = await sendVerificationEmail(email, username, verificationLink);
-
-  if (!emailResponse.success) {
-    return new Response(JSON.stringify({ message: "Failed to send verification email" }), {
-      status: 500,
-    });
-  }
-
-  return new Response(JSON.stringify({ message: "User created, verification email sent" }), {
-    status: 201,
-  });
+  return new Response(JSON.stringify({message: "User created"}),{status: 201});
 }
+

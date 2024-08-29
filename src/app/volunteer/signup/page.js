@@ -1,7 +1,7 @@
-// pages/signup/volunteer.js
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,36 +30,72 @@ export default function VolunteerSignUp() {
 
     let resolvedLocation = location;
 
-    if (useAutoLocation) {
-      await new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const { latitude, longitude } = position.coords;
-          resolvedLocation = `Lat: ${latitude}, Long: ${longitude}`;
-          resolve();
-        });
-      });
-    }
+if (useAutoLocation) {
+  await new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      resolvedLocation = {
+        type: "Point", 
+        coordinates: [longitude, latitude],
+      };
+      console.log("Resolved Location:", resolvedLocation);
+      resolve();
+    });
+  });
+}
 
-    try {
-      const res = await axios.post("/api/signup/volunteer", {
-        email,
-        password,
-        username,
-        location: resolvedLocation,
-        role,
-      });
+console.log("Final Location Object to be sent:", resolvedLocation);
 
-      if (res.status === 201) {
-        toast.success("Sign up successful! Please check your email to verify your account.");
-      } else {
-        toast.error(res.data.message || "Sign up failed. Please try again.");
-      }
-    } catch (err) {
-      toast.error("Sign up failed. Please try again.");
-    } finally {
-      setLoading(false);
+try {
+  const res = await axios.post("/api/signup/volunteer", {
+    email,
+    password,
+    username,
+    location: resolvedLocation, 
+    role,
+  });
+
+} catch (err) {
+  toast.error("Sign up failed. Please try again.");
+} finally {
+  setLoading(false);
+}
+
+
+try {
+  const res = await axios.post("/api/signup/volunteer", {
+    email,
+    password,
+    username,
+    location: resolvedLocation, // Now sending proper GeoJSON format
+    role,
+  });
+
+  if (res.status === 201) {
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+      role,
+    });
+    console.log(result);
+
+    if (!result.error) {
+      const redirectUrl = "/volunteer/dashboard";
+      router.push(redirectUrl);
+      toast.success("Signup successful!");
+    } else {
+      toast.error("Signup failed, please try again");
     }
-  };
+  } else {
+    console.log("Some error occurred");
+  }
+} catch (err) {
+  toast.error("Sign up failed. Please try again.");
+} finally {
+  setLoading(false);
+}
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url('/volunteerSignupBg.jpg')` }}>

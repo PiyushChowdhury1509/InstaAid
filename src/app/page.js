@@ -71,11 +71,11 @@ const UploadForm = () => {
     const formData = new FormData();
     
     for (const file of files) {
-      formData.append('file', file);
+        formData.append('file', file);
     }
     
     for (const videoFile of videoFiles) {
-      formData.append('file', videoFile);
+        formData.append('file', videoFile);
     }
   
     formData.append('description', description);
@@ -84,51 +84,76 @@ const UploadForm = () => {
     toast.info('Uploading files...', { position: "top-center" });
   
     try {
-      const uploadResponse = await fetch('/api/uploadFiles', {
-        method: 'POST',
-        body: formData,
-      });
-  
-      if (!uploadResponse.ok) {
-        throw new Error('Network response was not ok.');
-      } 
-      const uploadData = await uploadResponse.json();
-      toast.success('Files uploaded successfully!', { position: "top-center" });
-  
-      const reportData = {
-        description,
-        reporters: [email], 
-        photos: uploadData.urls.filter(url => url.includes('image')), 
-        videos: uploadData.urls.filter(url => url.includes('video')), 
-      };
-      toast.info('Submitting accident report...', { position: "top-center" });
-  
-      const reportResponse = await fetch('/api/reportAccident', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(reportData),
-      });
-  
-      if (!reportResponse.ok) {
-        throw new Error('Network response was not ok.');
-      }
-  
-      const reportDataResponse = await reportResponse.json();
-      toast.success('Accident reported successfully!', { position: "top-center" });
-      console.log(reportDataResponse);
-  
-    } catch (error) {
-      toast.error(`Error: ${error.message}`, { position: "top-center" });
-    }
-  };
+        const uploadResponse = await fetch('/api/uploadFiles', {
+            method: 'POST',
+            body: formData,
+        });
 
-  
+        if (!uploadResponse.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const uploadData = await uploadResponse.json();
+        toast.success('Files uploaded successfully!', { position: "top-center" });
+
+        let location = {
+            type: 'Point',
+            coordinates: [0, 0], // Default coordinates
+        };
+
+        // Obtain the location
+        const position = await new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(resolve, reject);
+            } else {
+                console.error("Geolocation is not supported by this browser.");
+                resolve(null);
+            }
+        });
+
+        if (position) {
+            location = {
+                type: 'Point',
+                coordinates: [position.coords.longitude, position.coords.latitude],
+            };
+        }
+
+        const reportData = {
+            description,
+            reporters: [email], 
+            photos: uploadData.urls.filter(url => url.includes('image')), 
+            videos: uploadData.urls.filter(url => url.includes('video')),
+            location,  
+            nearestVolunteers: [], // This should be populated in the backend
+        };
+
+        toast.info('Submitting accident report...', { position: "top-center" });
+
+        const reportResponse = await fetch('/api/reportAccident', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reportData),
+        });
+
+        if (!reportResponse.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const reportDataResponse = await reportResponse.json();
+        toast.success('Accident reported successfully!', { position: "top-center" });
+        console.log(reportDataResponse);
+
+    } catch (error) {
+        toast.error(`Error: ${error.message}`, { position: "top-center" });
+    }
+};
+
+ 
   const toggleFAQ = (index) => {
     setActiveFAQ(activeFAQ === index ? null : index);
   };
-
   return (
     <>
       <ToastContainer />

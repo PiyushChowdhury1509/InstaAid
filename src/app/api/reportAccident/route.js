@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Accident from '@/models/accident';
 import mongoose from 'mongoose';
+import Volunteer from '@/models/volunteer';
 
 export const POST = async (req) => {
   try {
@@ -19,13 +20,26 @@ export const POST = async (req) => {
         type: 'Point',
         coordinates: [0, 0], 
       },
-      hospital: "60b8d295f2bfcf001c8b4567", 
-      nearestVolunteers: [],  
+      hospital: hospital || "60b8d295f2bfcf001c8b4567",
+      nearestVolunteers: [], 
     };
+
+    const nearestVolunteers = await Volunteer.find({
+      location: {
+        $near: {
+          $geometry: accidentData.location,
+          $maxDistance: 5000, 
+        }
+      }
+    }).limit(2); 
+    console.log('the two volunteers are ',nearestVolunteers);
+
+    accidentData.nearestVolunteers = nearestVolunteers.map(volunteer => volunteer._id);
+
     const accident = new Accident(accidentData);
     await accident.save();
 
-    return NextResponse.json({ message: 'Accident reported successfully!' });
+    return NextResponse.json({ message: 'Accident reported successfully!', nearestVolunteers: accidentData.nearestVolunteers });
   } catch (error) {
     console.error('Error reporting accident:', error);
     return NextResponse.json({ error: 'Failed to report accident' }, { status: 500 });
