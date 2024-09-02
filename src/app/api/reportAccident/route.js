@@ -38,7 +38,6 @@ export const POST = async (req) => {
     const accident = new Accident(accidentData);
     await accident.save();
 
-    // Update the liveAccidents array for each nearest volunteer
     for (const volunteer of nearestVolunteers) {
       volunteer.liveAccidents.push(accident._id);
       await volunteer.save();

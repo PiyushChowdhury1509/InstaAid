@@ -98,10 +98,9 @@ const UploadForm = () => {
 
         let location = {
             type: 'Point',
-            coordinates: [0, 0], // Default coordinates
+            coordinates: [0, 0], 
         };
 
-        // Obtain the location
         const position = await new Promise((resolve, reject) => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(resolve, reject);

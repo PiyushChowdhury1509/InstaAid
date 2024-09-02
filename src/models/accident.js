@@ -32,12 +32,17 @@ const AccidentSchema = new mongoose.Schema({
             required: true
         }
     },
+    status: {
+        type: String,
+        enum: ['Pending', 'In Progress', 'Resolved', 'Cancelled'],
+        default: 'Pending',
+    },
 }, {
     timestamps: true,
 });
 
 AccidentSchema.index({ location: '2dsphere' }); 
 
-const Accident = mongoose.models.accident ||  mongoose.model('accident', AccidentSchema);
+const Accident = mongoose.models.Accident ||  mongoose.model('Accident', AccidentSchema);
 
 export default Accident;
